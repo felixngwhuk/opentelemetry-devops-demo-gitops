@@ -1,0 +1,8 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+- op: replace
+  path: /metadata/name
+  value: otel-collector-staging
+- op: replace
+  path: /subjects/0/namespace
+  value: otel-demo-staging

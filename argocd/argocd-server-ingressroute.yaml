@@ -1,0 +1,21 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: argocd-server
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  entryPoints:
+#    - websecure
+    - web
+  routes:
+    - match: Host(`argocd.devopsbyfelix.shop`)
+      kind: Rule
+      middlewares:
+        - name: argocd-forwarded-https
+      services:
+        - name: argocd-server
+          port: 80
+#  tls:
+#    certResolver: letsencrypt

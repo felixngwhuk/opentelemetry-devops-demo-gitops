@@ -1,0 +1,68 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+  - namespace.yaml
+
+namespace: otel-demo-dev
+
+images:
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/accounting
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/ad
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/cart
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/checkout
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/currency
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/email
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/flagd-ui
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/fraud-detection
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/frontend
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/frontend-proxy
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/image-provider
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/kafka
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/payment
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/product-catalog
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/quote
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/recommendation
+    newTag: dev-62ee39e
+  - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/shipping
+    newTag: dev-62ee39e
+
+patches:
+  - path: replicas.yaml
+  - path: resources.yaml
+  - target:
+      labelSelector: app.kubernetes.io/part-of=opentelemetry-demo
+    patch: |-
+      - op: add
+        path: /metadata/labels/app.kubernetes.io~1version
+        value: dev-62ee39e
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: ClusterRoleBinding
+      labelSelector: rbac.opentelemetry.io/binding=otel-collector
+    path: clusterrolebinding-patch.yaml
+  - target:
+      group: traefik.io
+      version: v1alpha1
+      kind: IngressRoute
+      name: frontend-proxy
+    path: traefik-host-patch.yaml

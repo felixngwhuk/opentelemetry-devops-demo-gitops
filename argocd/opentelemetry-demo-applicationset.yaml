@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: opentelemetry-demo
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  generators:
+    - list:
+        elements:
+          - env: dev
+            namespace: otel-demo-dev
+#          - env: staging
+#            namespace: otel-demo-staging
+#          - env: prod
+#            namespace: otel-demo-prod
+  template:
+    metadata:
+      name: opentelemetry-demo-{{env}}
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/felixngwhuk/opentelemetry-devops-demo-gitops.git
+        targetRevision: main
+        path: apps/opentelemetry-demo/overlays/{{env}}
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{namespace}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
