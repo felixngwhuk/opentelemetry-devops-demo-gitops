@@ -48,6 +48,7 @@ images:
 patches:
   - path: replicas.yaml
   - path: resources.yaml
+  - path: frontend-otel-endpoint-patch.yaml
   - target:
       labelSelector: app.kubernetes.io/part-of=opentelemetry-demo
     patch: |-
