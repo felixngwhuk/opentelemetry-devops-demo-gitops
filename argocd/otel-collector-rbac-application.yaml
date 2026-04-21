@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: https://github.com/felixngwhuk/opentelemetry-devops-demo-gitops.git
     targetRevision: main
-    path: kubernetes/cluster/otel-collector-rbac
+    path: cluster/otel-collector-rbac
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:
