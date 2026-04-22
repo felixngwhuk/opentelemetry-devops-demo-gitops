@@ -11,10 +11,10 @@ spec:
         elements:
           - env: dev
             namespace: otel-demo-dev
-#          - env: staging
-#            namespace: otel-demo-staging
-#          - env: prod
-#            namespace: otel-demo-prod
+          - env: staging
+            namespace: otel-demo-staging
+          - env: prod
+            namespace: otel-demo-prod
   template:
     metadata:
       name: opentelemetry-demo-{{env}}
