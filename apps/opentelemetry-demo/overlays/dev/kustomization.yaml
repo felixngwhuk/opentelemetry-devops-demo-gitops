@@ -11,39 +11,39 @@ namespace: otel-demo-dev
 
 images:
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/accounting
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/ad
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/cart
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/checkout
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/currency
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/email
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/flagd-ui
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/fraud-detection
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/frontend
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/frontend-proxy
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/image-provider
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/kafka
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/payment
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/product-catalog
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/quote
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/recommendation
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/shipping
-    newTag: dev-efa1512
+    newTag: dev-e4acec9
 
 patches:
   - path: replicas.yaml
@@ -54,7 +54,7 @@ patches:
     patch: |-
       - op: add
         path: /metadata/labels/app.kubernetes.io~1version
-        value: dev-efa1512
+        value: dev-e4acec9
   - target:
       group: rbac.authorization.k8s.io
       version: v1
