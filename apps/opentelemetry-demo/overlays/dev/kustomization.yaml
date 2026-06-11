@@ -2,49 +2,45 @@
 # SPDX-License-Identifier: Apache-2.0
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
   - ../../base
   - namespace.yaml
-
 namespace: otel-demo-dev
-
 images:
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/accounting
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/ad
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/cart
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/checkout
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/currency
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/email
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/flagd-ui
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/fraud-detection
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/frontend
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/frontend-proxy
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/image-provider
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/kafka
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/payment
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/product-catalog
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/quote
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/recommendation
-    newTag: dev-e4acec9
+    newTag: dev-5189e1b
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/shipping
-    newTag: dev-e4acec9
-
+    newTag: dev-5189e1b
 patches:
   - path: replicas.yaml
   - path: resources.yaml
@@ -54,7 +50,7 @@ patches:
     patch: |-
       - op: add
         path: /metadata/labels/app.kubernetes.io~1version
-        value: dev-e4acec9
+        value: dev-5189e1b
   - target:
       group: rbac.authorization.k8s.io
       version: v1
