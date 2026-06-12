@@ -2,49 +2,45 @@
 # SPDX-License-Identifier: Apache-2.0
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
   - ../../base
   - namespace.yaml
-
 namespace: otel-demo-prod
-
 images:
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/accounting
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/ad
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/cart
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/checkout
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/currency
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/email
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/flagd-ui
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/fraud-detection
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/frontend
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/frontend-proxy
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/image-provider
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/kafka
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/payment
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/product-catalog
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/quote
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/recommendation
-    newTag: 0.0.0
+    newTag: 0.2.0
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/shipping
-    newTag: 0.0.0
-
+    newTag: 0.2.0
 patches:
   - path: replicas.yaml
   - path: resources.yaml
@@ -54,7 +50,7 @@ patches:
     patch: |-
       - op: add
         path: /metadata/labels/app.kubernetes.io~1version
-        value: 0.0.0
+        value: 0.2.0
   - target:
       group: rbac.authorization.k8s.io
       version: v1
