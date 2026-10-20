@@ -6,6 +6,25 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
+  strategy:
+    type: RollingSync
+    rollingSync:
+      steps:
+        - matchExpressions:
+            - key: rollout-environment
+              operator: In
+              values: [dev]
+          maxUpdate: 1
+        - matchExpressions:
+            - key: rollout-environment
+              operator: In
+              values: [staging]
+          maxUpdate: 1
+        - matchExpressions:
+            - key: rollout-environment
+              operator: In
+              values: [prod]
+          maxUpdate: 1
   generators:
     - list:
         elements:
@@ -18,6 +37,8 @@ spec:
   template:
     metadata:
       name: opentelemetry-demo-{{env}}
+      labels:
+        rollout-environment: "{{env}}"      
       finalizers:
         - resources-finalizer.argocd.argoproj.io
     spec:
@@ -30,8 +51,8 @@ spec:
         server: https://kubernetes.default.svc
         namespace: "{{namespace}}"
       syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
+#        automated:
+#          prune: true
+#          selfHeal: true
         syncOptions:
           - CreateNamespace=true
