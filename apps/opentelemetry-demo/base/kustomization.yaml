@@ -6,3 +6,16 @@ kind: Kustomization
 resources:
   - opentelemetry-demo.yaml
   - clusterrolebinding.yaml
+
+configMapGenerator:
+  - name: otel-collector
+    files:
+      - relay=otel-collector-relay.yaml
+
+generatorOptions:
+  labels:
+    app.kubernetes.io/name: opentelemetry-collector
+    app.kubernetes.io/instance: opentelemetry-demo
+    app.kubernetes.io/version: "0.135.0"
+    app.kubernetes.io/part-of: opentelemetry-collector
+    app.kubernetes.io/component: standalone-collector
