@@ -8,39 +8,39 @@ resources:
 namespace: otel-demo-dev
 images:
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/accounting
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/ad
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/cart
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/checkout
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/currency
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/email
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/flagd-ui
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/fraud-detection
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/frontend
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/frontend-proxy
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/image-provider
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/kafka
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/payment
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/product-catalog
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/quote
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/recommendation
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
   - name: ghcr.io/felixngwhuk/opentelemetry-devops-demo/shipping
-    newTag: dev-5189e1b
+    newTag: dev-f763fd2
 patches:
   - path: replicas.yaml
   - path: resources.yaml
@@ -50,7 +50,7 @@ patches:
     patch: |-
       - op: add
         path: /metadata/labels/app.kubernetes.io~1version
-        value: dev-5189e1b
+        value: dev-f763fd2
   - target:
       group: apps
       version: v1
@@ -59,7 +59,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/template/metadata/labels/app.kubernetes.io~1version
-        value: "dev-5189e1b"
+        value: "dev-f763fd2"
   - target:
       group: rbac.authorization.k8s.io
       version: v1
