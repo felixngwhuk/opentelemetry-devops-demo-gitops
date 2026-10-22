@@ -1,3 +1,4 @@
+# P1-04 controlled ConfigMap lifecycle verification; configuration is unchanged.
 connectors:
   spanmetrics: {}
 exporters:

@@ -143,6 +143,11 @@ def normalized_render(docs, description):
     normalized = copy.deepcopy(docs)
     for doc in normalized:
         metadata = doc.get("metadata", {})
+        data = doc.get("data", {})
+        if doc.get("kind") == "ConfigMap" and data.get("relay") is not None:
+            # Compare the embedded YAML semantically so comments or formatting
+            # edits can exercise Kustomize hashing without appearing as config changes.
+            data["relay"] = yaml.safe_load(data["relay"])
         if doc.get("kind") == "ConfigMap" and doc.get("data", {}).get("relay") is not None:
             metadata["name"] = collector_name
         if (doc.get("apiVersion") == "apps/v1"
