@@ -139,7 +139,7 @@ def baseline_collector_config(docs):
     return yaml.safe_load(configmap["data"]["relay"])
 
 
-def without_environment_processor(config, description):
+def without_phase1_additions(config, description):
     normalized = copy.deepcopy(config)
     processors = normalized.get("processors", {})
     if "resource/environment" in processors:
@@ -154,6 +154,26 @@ def without_environment_processor(config, description):
             check(pipeline.count("resource/environment") == 1,
                   f"{description}/{signal}: expected one environment processor")
             pipeline.remove("resource/environment")
+    if "prometheus" in normalized.get("exporters", {}):
+        check(normalized["exporters"].pop("prometheus") == {"endpoint": "0.0.0.0:8889"},
+              f"{description}: unexpected Prometheus exporter")
+        mappings = {
+            "deployment.environment.name": "environment", "service.name": "service_name",
+            "service.version": "service_version", "k8s.namespace.name": "k8s_namespace_name",
+        }
+        statements = [f'set(attributes["{label}"], resource.attributes["{key}"]) '
+                      f'where resource.attributes["{key}"] != nil'
+                      for key, label in mappings.items()]
+        check(processors.pop("transform/metric-labels", None) == {
+            "error_mode": "ignore",
+            "metric_statements": [{"context": "datapoint", "statements": statements}],
+        }, f"{description}: unexpected metric label transformation")
+        pipeline = normalized["service"]["pipelines"]["metrics"]
+        check(pipeline["exporters"].count("prometheus") == 1
+              and pipeline["processors"].count("transform/metric-labels") == 1,
+              f"{description}: expected one Prometheus exporter and metric label processor")
+        pipeline["exporters"].remove("prometheus")
+        pipeline["processors"].remove("transform/metric-labels")
     return normalized
 
 
@@ -165,8 +185,16 @@ def normalized_render(docs, description):
         if doc.get("kind") == "ConfigMap" and data.get("relay") is not None:
             # Compare the embedded YAML semantically so comments or formatting
             # edits can exercise Kustomize hashing without appearing as config changes.
-            data["relay"] = without_environment_processor(
+            data["relay"] = without_phase1_additions(
                 yaml.safe_load(data["relay"]), description)
+        if doc.get("kind") == "Service" and metadata.get("name") == collector_name:
+            ports = doc["spec"]["ports"]
+            additions = [p for p in ports if p.get("name") == "prometheus-exporter"]
+            if additions:
+                check(additions == [{"name": "prometheus-exporter", "port": 8889,
+                                     "targetPort": "prom-exporter", "protocol": "TCP"}],
+                      f"{description}: unexpected exporter Service port")
+                ports.remove(additions[0])
         if doc.get("kind") == "ConfigMap" and doc.get("data", {}).get("relay") is not None:
             metadata["name"] = collector_name
         if (doc.get("apiVersion") == "apps/v1"
@@ -179,6 +207,14 @@ def normalized_render(docs, description):
                       "baseline render: expected original fixed checksum annotation")
             annotations.pop("checksum/config", None)
             for container in doc["spec"]["template"]["spec"].get("containers", []):
+                ports = container.get("ports", [])
+                additions = [p for p in ports if p.get("name") == "prom-exporter"]
+                if additions:
+                    check(container.get("name") == "opentelemetry-collector"
+                          and additions == [{"name": "prom-exporter", "containerPort": 8889,
+                                             "protocol": "TCP"}],
+                          f"{description}: unexpected exporter container port")
+                    ports.remove(additions[0])
                 env = container.get("env", [])
                 environment_vars = [item for item in env
                                     if item.get("name") == "DEPLOYMENT_ENVIRONMENT"]
@@ -286,8 +322,8 @@ try:
     original_relay = baseline_collector_config(baseline_source_docs)
     relay_file = root / targets["base"] / "otel-collector-relay.yaml"
     extracted_relay = yaml.safe_load(relay_file.read_text())
-    check(without_environment_processor(extracted_relay, "extracted relay") == original_relay,
-          "relay changed beyond the explicitly verified environment processor addition")
+    check(without_phase1_additions(extracted_relay, "extracted relay") == original_relay,
+          "relay changed beyond the explicitly verified environment and Prometheus additions")
 
     for name, relative in targets.items():
         baseline_path = baseline_root / relative
@@ -309,7 +345,7 @@ try:
         current_normalized = normalized_render(current_docs, name)
         check(current_normalized == baseline_normalized,
               f"{name}: rendered resources changed beyond ConfigMap hashing, checksum removal, "
-              "and the verified environment additions")
+              "and the verified environment and Prometheus additions")
         print(f"PASS: {name}: {current_cm['metadata']['name']} and Deployment reference agree",
               flush=True)
 
