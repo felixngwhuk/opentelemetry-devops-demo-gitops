@@ -110,6 +110,12 @@ def verify_generated_render(docs, description, expected_relay):
     generated_name = configmap["metadata"]["name"]
     check(re.fullmatch(r"otel-collector-[a-z0-9]{5,}", generated_name) is not None,
           f"{description}: ConfigMap name is not hash-suffixed: {generated_name}")
+    fixed_configmaps = [doc for doc in docs
+                        if doc.get("apiVersion") == "v1"
+                        and doc.get("kind") == "ConfigMap"
+                        and doc.get("metadata", {}).get("name") == collector_name]
+    check(not fixed_configmaps,
+          f"{description}: old fixed-name Collector ConfigMap is present in rendered manifests")
     labels = configmap["metadata"].get("labels", {})
     check(all(labels.get(key) == value for key, value in expected_labels.items()),
           f"{description}: generated ConfigMap labels changed: {labels}")
@@ -165,8 +171,67 @@ def normalized_render(docs, description):
     return keyed
 
 
+def verify_rolling_sync_policy():
+    path = root / "argocd/opentelemetry-demo-applicationset.yaml"
+    appset = yaml.safe_load(path.read_text())
+    spec = appset.get("spec", {})
+    strategy = spec.get("strategy", {})
+    check(strategy.get("type") == "RollingSync",
+          "ApplicationSet must retain the RollingSync strategy")
+
+    expected_environments = ["dev", "staging", "prod"]
+    steps = strategy.get("rollingSync", {}).get("steps", [])
+    actual_environments = []
+    for step in steps:
+        expressions = step.get("matchExpressions", [])
+        check(len(expressions) == 1,
+              "each RollingSync step must have one rollout-environment expression")
+        expression = expressions[0]
+        check(expression.get("key") == "rollout-environment"
+              and expression.get("operator") == "In"
+              and len(expression.get("values", [])) == 1,
+              "RollingSync step must match one rollout-environment value")
+        check(step.get("maxUpdate") == 1,
+              "each RollingSync step must retain maxUpdate: 1")
+        actual_environments.append(expression["values"][0])
+    check(actual_environments == expected_environments,
+          f"RollingSync steps changed: {actual_environments}")
+
+    expected_elements = [
+        {"env": "dev", "namespace": "otel-demo-dev"},
+        {"env": "staging", "namespace": "otel-demo-staging"},
+        {"env": "prod", "namespace": "otel-demo-prod"},
+    ]
+    elements = spec.get("generators", [{}])[0].get("list", {}).get("elements", [])
+    check(elements == expected_elements,
+          f"ApplicationSet environment generator changed: {elements}")
+
+    template_policy = spec.get("template", {}).get("spec", {}).get("syncPolicy", {})
+    automated = template_policy.get("automated", {})
+    check(automated.get("prune") is True,
+          "ApplicationSet template must request automated pruning")
+    check(automated.get("selfHeal") is True,
+          "ApplicationSet template must request automated self-healing")
+    check("enabled" not in automated,
+          "ApplicationSet template must omit automated.enabled so RollingSync reads prune")
+    check(automated.get("allowEmpty") is not True,
+          "ApplicationSet template must not enable allowEmpty")
+    sync_options = template_policy.get("syncOptions", [])
+    check(set(sync_options) == {"CreateNamespace=true", "PruneLast=true"},
+          f"ApplicationSet sync options changed unexpectedly: {sync_options}")
+
+    root_application = yaml.safe_load(
+        (root / "bootstrap/root-application.yaml").read_text())
+    root_automated = root_application.get("spec", {}).get("syncPolicy", {}).get("automated", {})
+    check(root_automated == {"prune": True, "selfHeal": True},
+          "separate root Application auto-sync policy changed")
+    print("PASS: RollingSync pruning policy, environment order, and root policy", flush=True)
+
+
 work = Path(tempfile.mkdtemp(prefix="collector-configmap."))
 try:
+    verify_rolling_sync_policy()
+
     archive_result = subprocess.run(
         ["git", "archive", baseline_revision], cwd=root,
         capture_output=True, check=True)
