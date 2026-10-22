@@ -40,6 +40,11 @@ processors:
     - action: insert
       from_attribute: k8s.pod.uid
       key: service.instance.id
+  resource/environment:
+    attributes:
+    - action: upsert
+      key: deployment.environment.name
+      value: ${env:DEPLOYMENT_ENVIRONMENT}
   resourcedetection:
     detectors:
     - env
@@ -117,6 +122,7 @@ service:
       - memory_limiter
       - resourcedetection
       - resource
+      - resource/environment
       - batch
       receivers:
       - otlp
@@ -128,6 +134,7 @@ service:
       - memory_limiter
       - resourcedetection
       - resource
+      - resource/environment
       - batch
       receivers:
       - httpcheck/frontend-proxy
@@ -146,6 +153,7 @@ service:
       - resourcedetection
       - resource
       - transform
+      - resource/environment
       - batch
       receivers:
       - otlp

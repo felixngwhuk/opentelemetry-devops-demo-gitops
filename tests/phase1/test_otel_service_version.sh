@@ -74,6 +74,13 @@ def validate(current, context, rendered):
                 env = container.get("env", [])
                 check(not any(item["name"] == "RELEASE_VERSION" for item in env),
                       f"{context}/{name}/{container['name']}: excluded container changed")
+                if name == "otel-collector" and rendered:
+                    deployment_environment = [item for item in env
+                                              if item["name"] == "DEPLOYMENT_ENVIRONMENT"]
+                    check(len(deployment_environment) == 1,
+                          f"{context}/{name}/{container['name']}: expected one DEPLOYMENT_ENVIRONMENT")
+                    check(deployment_environment[0].get("value") == context,
+                          f"{context}/{name}/{container['name']}: incorrect DEPLOYMENT_ENVIRONMENT")
             continue
         check(len(spec["containers"]) == 1, f"{context}/{name}: unexpected app containers")
         container = spec["containers"][0]
@@ -121,7 +128,13 @@ try:
             check(spec.get("initContainers") == baseline.get("initContainers"),
                   f"{environment}/{name}: init containers changed")
             if name in excluded:
-                check([(c["name"], c.get("env", [])) for c in spec["containers"]] ==
+                current_containers = []
+                for container in spec["containers"]:
+                    env = container.get("env", [])
+                    if name == "otel-collector":
+                        env = [item for item in env if item["name"] != "DEPLOYMENT_ENVIRONMENT"]
+                    current_containers.append((container["name"], env))
+                check(current_containers ==
                       [(c["name"], c.get("env", [])) for c in baseline["containers"]],
                       f"{environment}/{name}: excluded container env changed")
         print(f"PASS: {environment}: 16 Pod-label versions, env order, image tags; "

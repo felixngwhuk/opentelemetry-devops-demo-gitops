@@ -1,0 +1,14 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+spec:
+  template:
+    spec:
+      containers:
+        - name: opentelemetry-collector
+          env:
+            - name: DEPLOYMENT_ENVIRONMENT
+              value: prod

@@ -139,6 +139,24 @@ def baseline_collector_config(docs):
     return yaml.safe_load(configmap["data"]["relay"])
 
 
+def without_environment_processor(config, description):
+    normalized = copy.deepcopy(config)
+    processors = normalized.get("processors", {})
+    if "resource/environment" in processors:
+        expected = {"attributes": [{
+            "action": "upsert", "key": "deployment.environment.name",
+            "value": "${env:DEPLOYMENT_ENVIRONMENT}",
+        }]}
+        check(processors.pop("resource/environment") == expected,
+              f"{description}: unexpected environment processor configuration")
+        for signal in ("logs", "metrics", "traces"):
+            pipeline = normalized["service"]["pipelines"][signal]["processors"]
+            check(pipeline.count("resource/environment") == 1,
+                  f"{description}/{signal}: expected one environment processor")
+            pipeline.remove("resource/environment")
+    return normalized
+
+
 def normalized_render(docs, description):
     normalized = copy.deepcopy(docs)
     for doc in normalized:
@@ -147,7 +165,8 @@ def normalized_render(docs, description):
         if doc.get("kind") == "ConfigMap" and data.get("relay") is not None:
             # Compare the embedded YAML semantically so comments or formatting
             # edits can exercise Kustomize hashing without appearing as config changes.
-            data["relay"] = yaml.safe_load(data["relay"])
+            data["relay"] = without_environment_processor(
+                yaml.safe_load(data["relay"]), description)
         if doc.get("kind") == "ConfigMap" and doc.get("data", {}).get("relay") is not None:
             metadata["name"] = collector_name
         if (doc.get("apiVersion") == "apps/v1"
@@ -159,6 +178,18 @@ def normalized_render(docs, description):
                 check(annotations.get("checksum/config") == checksum_value,
                       "baseline render: expected original fixed checksum annotation")
             annotations.pop("checksum/config", None)
+            for container in doc["spec"]["template"]["spec"].get("containers", []):
+                env = container.get("env", [])
+                environment_vars = [item for item in env
+                                    if item.get("name") == "DEPLOYMENT_ENVIRONMENT"]
+                if environment_vars:
+                    check(description in {"dev", "staging", "prod"}
+                          and container.get("name") == "opentelemetry-collector"
+                          and environment_vars == [{"name": "DEPLOYMENT_ENVIRONMENT",
+                                                    "value": description}],
+                          f"{description}: unexpected Collector environment variable")
+                    container["env"] = [item for item in env
+                                        if item.get("name") != "DEPLOYMENT_ENVIRONMENT"]
             for volume in doc["spec"]["template"]["spec"].get("volumes", []):
                 config_map = volume.get("configMap", {})
                 config_map_name = config_map.get("name", "")
@@ -255,8 +286,8 @@ try:
     original_relay = baseline_collector_config(baseline_source_docs)
     relay_file = root / targets["base"] / "otel-collector-relay.yaml"
     extracted_relay = yaml.safe_load(relay_file.read_text())
-    check(extracted_relay == original_relay,
-          "extracted relay YAML is not semantically equal to the original ConfigMap data")
+    check(without_environment_processor(extracted_relay, "extracted relay") == original_relay,
+          "relay changed beyond the explicitly verified environment processor addition")
 
     for name, relative in targets.items():
         baseline_path = baseline_root / relative
@@ -273,11 +304,12 @@ try:
         check(baseline_volume["configMap"]["name"] == collector_name,
               f"baseline {name}: original Deployment volume reference changed")
 
-        current_cm, _, _ = verify_generated_render(current_docs, name, original_relay)
+        current_cm, _, _ = verify_generated_render(current_docs, name, extracted_relay)
         baseline_normalized = normalized_render(baseline_docs, "baseline")
         current_normalized = normalized_render(current_docs, name)
         check(current_normalized == baseline_normalized,
-              f"{name}: rendered resources changed beyond ConfigMap hashing and checksum removal")
+              f"{name}: rendered resources changed beyond ConfigMap hashing, checksum removal, "
+              "and the verified environment additions")
         print(f"PASS: {name}: {current_cm['metadata']['name']} and Deployment reference agree",
               flush=True)
 
@@ -319,6 +351,7 @@ try:
         else:
             command = [
                 runtime, "run", "--rm", "-e", "MY_POD_IP=127.0.0.1",
+                "-e", "DEPLOYMENT_ENVIRONMENT=dev",
                 "-v", f"{relay_file}:/conf/relay.yaml:ro",
                 f"otel/opentelemetry-collector-contrib:{collector_version}",
                 "validate", "--config=/conf/relay.yaml",
