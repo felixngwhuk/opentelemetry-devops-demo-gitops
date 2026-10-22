@@ -3,6 +3,8 @@ connectors:
   spanmetrics: {}
 exporters:
   debug: {}
+  prometheus:
+    endpoint: 0.0.0.0:8889
 extensions:
   health_check:
     endpoint: ${env:MY_POD_IP}:13133
@@ -56,6 +58,15 @@ processors:
       statements:
       - replace_pattern(name, "\\?.*", "")
       - replace_match(name, "GET /api/products/*", "GET /api/products/{productId}")
+  transform/metric-labels:
+    error_mode: ignore
+    metric_statements:
+    - context: datapoint
+      statements:
+      - set(attributes["environment"], resource.attributes["deployment.environment.name"]) where resource.attributes["deployment.environment.name"] != nil
+      - set(attributes["service_name"], resource.attributes["service.name"]) where resource.attributes["service.name"] != nil
+      - set(attributes["service_version"], resource.attributes["service.version"]) where resource.attributes["service.version"] != nil
+      - set(attributes["k8s_namespace_name"], resource.attributes["k8s.namespace.name"]) where resource.attributes["k8s.namespace.name"] != nil
 receivers:
   httpcheck/frontend-proxy:
     targets:
@@ -129,12 +140,14 @@ service:
     metrics:
       exporters:
       - debug
+      - prometheus
       processors:
       - k8sattributes
       - memory_limiter
       - resourcedetection
       - resource
       - resource/environment
+      - transform/metric-labels
       - batch
       receivers:
       - httpcheck/frontend-proxy

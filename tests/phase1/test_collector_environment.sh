@@ -29,7 +29,7 @@ pipeline_processors = {
     "logs": ["k8sattributes", "memory_limiter", "resourcedetection", "resource",
               "resource/environment", "batch"],
     "metrics": ["k8sattributes", "memory_limiter", "resourcedetection", "resource",
-                 "resource/environment", "batch"],
+                 "resource/environment", "transform/metric-labels", "batch"],
     "traces": ["k8sattributes", "memory_limiter", "resourcedetection", "resource",
                 "transform", "resource/environment", "batch"],
 }
