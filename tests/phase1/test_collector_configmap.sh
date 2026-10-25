@@ -157,13 +157,16 @@ def without_phase1_additions(config, description):
     if "prometheus" in normalized.get("exporters", {}):
         check(normalized["exporters"].pop("prometheus") == {"endpoint": "0.0.0.0:8889"},
               f"{description}: unexpected Prometheus exporter")
-        mappings = {
-            "deployment.environment.name": "environment", "service.name": "service_name",
-            "service.version": "service_version", "k8s.namespace.name": "k8s_namespace_name",
-        }
-        statements = [f'set(attributes["{label}"], resource.attributes["{key}"]) '
-                      f'where resource.attributes["{key}"] != nil'
-                      for key, label in mappings.items()]
+        statements = [
+            'set(attributes["environment"], resource.attributes["deployment.environment.name"]) '
+            'where resource.attributes["deployment.environment.name"] != nil',
+            'set(cache["existing_service_name_aliases"], attributes)',
+            'keep_matching_keys(cache["existing_service_name_aliases"], "^service[^a-zA-Z0-9]name$")',
+            'set(attributes["service_name"], resource.attributes["service.name"]) '
+            'where IsString(resource.attributes["service.name"]) '
+            'and IsMatch(resource.attributes["service.name"], "[^[:space:]]") '
+            'and Len(cache["existing_service_name_aliases"]) == 0',
+        ]
         check(processors.pop("transform/metric-labels", None) == {
             "error_mode": "ignore",
             "metric_statements": [{"context": "datapoint", "statements": statements}],
