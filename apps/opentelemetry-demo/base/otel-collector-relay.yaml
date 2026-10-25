@@ -63,10 +63,13 @@ processors:
     metric_statements:
     - context: datapoint
       statements:
+      # Namespace identity is authoritative, including over incoming environment labels.
       - set(attributes["environment"], resource.attributes["deployment.environment.name"]) where resource.attributes["deployment.environment.name"] != nil
-      - set(attributes["service_name"], resource.attributes["service.name"]) where resource.attributes["service.name"] != nil
-      - set(attributes["service_version"], resource.attributes["service.version"]) where resource.attributes["service.version"] != nil
-      - set(attributes["k8s_namespace_name"], resource.attributes["k8s.namespace.name"]) where resource.attributes["k8s.namespace.name"] != nil
+      # Inspect a copy: every alias below normalizes to service_name in 0.135.0.
+      # Preserve incoming service identity; use resource identity only as fallback.
+      - set(cache["existing_service_name_aliases"], attributes)
+      - keep_matching_keys(cache["existing_service_name_aliases"], "^service[^a-zA-Z0-9]name$")
+      - set(attributes["service_name"], resource.attributes["service.name"]) where IsString(resource.attributes["service.name"]) and IsMatch(resource.attributes["service.name"], "[^[:space:]]") and Len(cache["existing_service_name_aliases"]) == 0
 receivers:
   httpcheck/frontend-proxy:
     targets:
