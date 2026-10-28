@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gp3-monitoring-smoke
+  namespace: otel-storage-test
+spec:
+  restartPolicy: Never
+  containers:
+    - name: smoke
+      image: busybox:1.37.0
+      command:
+        - sh
+        - -c
+        - sleep 3600
+      volumeMounts:
+        - name: storage
+          mountPath: /data
+  volumes:
+    - name: storage
+      persistentVolumeClaim:
+        claimName: gp3-monitoring-smoke
